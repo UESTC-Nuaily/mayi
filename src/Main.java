@@ -1,3 +1,6 @@
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -6,10 +9,7 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
-class Comments{
-    public int landlordCntCount;
-    public int roomCntCount;
-}
+
 
 public class Main {
     public static void main(String[] args) throws IOException{
@@ -27,7 +27,18 @@ public class Main {
                 String room = Main.sendGet("http://www.mayi.com/room/"+roomList[m], "");
                 System.out.println(room.split("share_roomTitle='")[1].split("';")[0]);
                 Object comments = Main.sendGet("http://www.mayi.com/room/getComment", "roomId="+roomList[m]);
-                System.out.println(comments);
+                JSONObject jsonObject = JSONObject.fromObject(comments);
+                RoomStatus rs = (RoomStatus)JSONObject.toBean(jsonObject,RoomStatus.class);
+                System.out.print("房源总好评率: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getIntegrated_praise_ratio()))+"%, ");
+                System.out.print("整洁卫生: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getSanitation_praise_ratio()))+"%, ");
+                System.out.print("设施环境: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getMatch_description_praise_ratio()))+"%, ");
+                System.out.print("交通位置: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getTraffic_praise_ratio()))+"%, ");
+                System.out.print("房东服务: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getSafety_praise_ratio()))+"%, ");
+                System.out.print("性价比: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getValue_praise_ratio()))+"%, ");
+                System.out.print("本房源评价: "+String.valueOf(rs.getRoomCntCount())+", ");
+                System.out.print("房东收到的所有评价: "+ String.valueOf(rs.getLandlordCntCount()));
+                System.out.println(" ");
+                System.out.println(" ");
             }
         }
     }
