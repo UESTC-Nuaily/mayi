@@ -1,11 +1,14 @@
-import net.sf.json.JSONException;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
+import net.sf.json.JsonConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,10 +28,11 @@ public class Main {
             String[] roomList=sonarProjects.split(",");
             for(int m=0;m<roomList.length;m++) {
                 String room = Main.sendGet("http://www.mayi.com/room/"+roomList[m], "");
+                System.out.println("----------------------------------------------------------");
                 System.out.println(room.split("share_roomTitle='")[1].split("';")[0]);
-                Object comments = Main.sendGet("http://www.mayi.com/room/getComment", "roomId="+roomList[m]);
-                JSONObject jsonObject = JSONObject.fromObject(comments);
-                RoomStatus rs = (RoomStatus)JSONObject.toBean(jsonObject,RoomStatus.class);
+                Object stats = Main.sendGet("http://www.mayi.com/room/getComment", "roomId="+roomList[m]);
+                JSONObject statsJsonObject = JSONObject.fromObject(stats);
+                RoomStatus rs = (RoomStatus)JSONObject.toBean(statsJsonObject,RoomStatus.class);
                 System.out.print("房源总好评率: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getIntegrated_praise_ratio()))+"%, ");
                 System.out.print("整洁卫生: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getSanitation_praise_ratio()))+"%, ");
                 System.out.print("设施环境: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getMatch_description_praise_ratio()))+"%, ");
@@ -37,6 +41,26 @@ public class Main {
                 System.out.print("性价比: "+ Math.round(100*Float.parseFloat(rs.getLodgeunitStat().getValue_praise_ratio()))+"%, ");
                 System.out.print("本房源评价: "+String.valueOf(rs.getRoomCntCount())+", ");
                 System.out.print("房东收到的所有评价: "+ String.valueOf(rs.getLandlordCntCount()));
+                System.out.println(" ");
+                System.out.println("----------------------------------------------------------");
+                Object comments = Main.sendGet("http://www.mayi.com/comment/id-"+roomList[m]+"/type-1/dataType-1/comments-p1-1000.json", "");
+                JSONObject commentsJsonObject = JSONObject.fromObject(comments);
+                roomComments cs = (roomComments)JSONObject.toBean(commentsJsonObject,roomComments.class);
+                for(int h=0;h<cs.getData().getComments().size();h++) {
+                    Object t = cs.getData().getComments().get(h);
+                    String a = t.toString();
+                    System.out.print("评价"+(h+1)+": " + a.split("content=")[1].split(",")[0]);
+                    System.out.println(" ");
+                    System.out.print("评价时间: " + a.split("timeString=")[1].split(",")[0]);
+                    System.out.println(" ");
+                    System.out.print("评价人: " + a.split("nickname=")[1].split(",")[0]);
+                    System.out.println(" ");
+                    System.out.print("评价人电话号码: " + a.split("mobile=")[1].split(",")[0]);
+                    System.out.println(" ");
+                    System.out.print("评价人头像: " + a.split("headimageurl=")[1].split(",")[0]);
+                    System.out.println(" ");
+                    System.out.println(" ");
+                }
                 System.out.println(" ");
                 System.out.println(" ");
             }
